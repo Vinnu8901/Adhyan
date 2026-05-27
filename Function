@@ -31,3 +31,59 @@ function parseSoapUIProject(xmlText) {
 
   return requests;
 }
+
+
+
+function soapRequestToCurl(req) {
+
+  return `
+curl --location '${req.endpoint}' \\
+--header 'Content-Type: text/xml;charset=UTF-8' \\
+--header 'SOAPAction: ${req.soapAction}' \\
+--data '${req.body}'
+`.trim();
+
+}
+
+NS.$('#btnImportSoapUI')?.addEventListener('click', () => {
+  NS.$('#soapuiFile')?.click();
+});
+
+NS.$('#soapuiFile')?.addEventListener('change', async (e) => {
+
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  const text = await file.text();
+
+  const requests = parseSoapUIProject(text);
+
+  if (!requests.length) {
+    toast('No SOAP requests found', 'error');
+    return;
+  }
+
+  const first = requests[0];
+
+  const curl = soapRequestToCurl(first);
+
+  const curlBox = NS.$('#curlBox');
+
+  if (curlBox) {
+    curlBox.value = curl;
+  }
+
+  toast(
+    `Imported ${requests.length} SOAP request(s)`,
+    'success'
+  );
+});
+
+
+
+
+
+
+
+
