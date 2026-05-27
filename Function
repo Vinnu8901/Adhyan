@@ -1,0 +1,33 @@
+function parseSoapUIProject(xmlText) {
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(xmlText, "text/xml");
+
+  const requests = [];
+
+  const calls = xml.getElementsByTagName("con:call");
+
+  for (let call of calls) {
+
+    const endpoint = call.getAttribute("endpoint") || "";
+
+    const requestNode =
+      call.getElementsByTagName("con:request")[0];
+
+    const requestBody =
+      requestNode?.textContent?.trim() || "";
+
+    const actionMatch =
+      requestBody.match(/SOAPAction:\s*"([^"]+)"/i);
+
+    requests.push({
+      name: call.getAttribute("name") || "SOAP_Request",
+      endpoint,
+      soapAction: actionMatch
+        ? actionMatch[1]
+        : "",
+      body: requestBody
+    });
+  }
+
+  return requests;
+}
